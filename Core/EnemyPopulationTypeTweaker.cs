@@ -26,27 +26,36 @@ namespace GTFO_DIfficulty_Tweaker.Core
 
             switch (SpawnTweakSettings.mode)
             {
-                case (SpawnTweakerMode.SCOUTS_PLEASE):
+                case SpawnTweakerMode.SCOUTS_PLEASE:
                     ReplaceAllEnemiesWithScouts(__instance);
                     break;
-                case (SpawnTweakerMode.EXTRA_SCOUTS):
+                case SpawnTweakerMode.EXTRA_SCOUTS:
                     RandomlyReplaceWithScouts(__instance);
                     break;
-                case (SpawnTweakerMode.ONLY_SHOOTERS):
+                case SpawnTweakerMode.ONLY_SHOOTERS:
                     enemyIDs = new List<int> { (int)EnemyID.Shooter_Big, (int)EnemyID.Shooter_Hibernate, (int)EnemyID.Shooter_Wave };
                     SetupRandomizedGroupsByIDs(__instance, enemyIDs, enemyIDsToIgnore);
                     break;
-                case (SpawnTweakerMode.ONLY_CHARGERS):
+                case SpawnTweakerMode.ONLY_CHARGERS:
                     enemyIDs = new List<int> { (int)EnemyID.Striker_Bullrush, (int)EnemyID.Striker_Big_Bullrush };
-
                     SetupRandomizedGroupsByIDs(__instance, enemyIDs, enemyIDsToIgnore);
                     break;
-                case (SpawnTweakerMode.ONLY_SHADOWS):
+                case SpawnTweakerMode.ONLY_SHADOWS:
                     enemyIDs = new List<int> { (int)EnemyID.Shadow, (int)EnemyID.Scout_Shadow, (int)EnemyID.Striker_Big_Shadow };
                     SetupRandomizedGroupsByIDs(__instance, enemyIDs, enemyIDsToIgnore);
                     break;
-                case (SpawnTweakerMode.RANDOM):
+                case SpawnTweakerMode.RANDOM:
+                    //ToDO --- This is kinda messy and made by hand, could use some automatization but the game balance needs to be adjusted, otherwise you'd have way too many bosses and the like
+                    // Alternative --- Create randomizer without bosses
                     RandomlyRandomizeEnemies(__instance);
+                    break;
+                case SpawnTweakerMode.BALANCED_RANDOM:
+                    enemyIDs = new List<int> { (int)EnemyID.Shadow, (int)EnemyID.Scout_Shadow, (int)EnemyID.Striker_Big_Shadow, 
+                    (int)EnemyID.Scout, (int)EnemyID.Striker_Big_Bullrush,
+                    (int)EnemyID.Shooter_Hibernate,(int)EnemyID.Striker_Hibernate, (int)EnemyID.Striker_Big_Hibernate,(int)EnemyID.Shooter_Big,
+                    (int)EnemyID.Striker_Bullrush, (int)EnemyID.Shooter_Big_RapidFire};
+
+                    SetupRandomizedGroupsByIDs(__instance, enemyIDs, enemyIDsToIgnore);
                     break;
                 default:
                     break;
@@ -206,7 +215,10 @@ namespace GTFO_DIfficulty_Tweaker.Core
 
             foreach (pAvailableEnemyTypes type in validGroups)
             {
-                weightedPairs.Add(type, (float)type.weight);
+                if(!weightedPairs.ContainsKey(type))
+                {
+                    weightedPairs.Add(type, (float)type.weight);
+                }
             }
 
             pAvailableEnemyTypes dataGroup = weightedPairs.RandomElementByWeight(e => e.Value).Key;
