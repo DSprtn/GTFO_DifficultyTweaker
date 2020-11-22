@@ -79,8 +79,8 @@
     <Compile Include="Core\EnemyPopulationTypeTweaker.cs" />
     <Compile Include="Core\HackyHooks.cs" />
     <Compile Include="Console\HelpCommand.cs" />
-    <Compile Include="Data\Enemies.cs" />
     <Compile Include="Data\EnemyGroupData.cs" />
+    <Compile Include="Data\EnemyID.cs" />
     <Compile Include="Inject\Inject.cs" />
     <Compile Include="Core\Main.cs" />
     <Compile Include="Core\SpawnTweakerMode.cs" />

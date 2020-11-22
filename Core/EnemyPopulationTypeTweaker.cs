@@ -6,6 +6,7 @@ using GTFO_DIfficulty_Tweaker.Util;
 using LevelGeneration;
 using MelonLoader;
 using SNetwork;
+using System;
 using System.Collections.Generic;
 
 namespace GTFO_DIfficulty_Tweaker.Core
@@ -20,6 +21,8 @@ namespace GTFO_DIfficulty_Tweaker.Core
             }
 
             List<int> enemyIDs;
+            List<int> enemyIDsToIgnore;
+            enemyIDsToIgnore = new List<int> { (int)EnemyID.Tank, (int)EnemyID.Birther, (int)EnemyID.Birther_Boss };
 
             switch (SpawnTweakSettings.mode)
             {
@@ -31,15 +34,16 @@ namespace GTFO_DIfficulty_Tweaker.Core
                     break;
                 case (SpawnTweakerMode.ONLY_SHOOTERS):
                     enemyIDs = new List<int> { (int)EnemyID.Shooter_Big, (int)EnemyID.Shooter_Hibernate, (int)EnemyID.Shooter_Wave };
-                    SetupRandomizedGroupsByIDs(__instance, enemyIDs);
+                    SetupRandomizedGroupsByIDs(__instance, enemyIDs, enemyIDsToIgnore);
                     break;
                 case (SpawnTweakerMode.ONLY_CHARGERS):
-                    enemyIDs = new List<int> { (int)EnemyID.Striker_Bullrush, (int)EnemyID.Striker_Big_Bullrush, (int)EnemyID.Tank };
-                    SetupRandomizedGroupsByIDs(__instance, enemyIDs);
+                    enemyIDs = new List<int> { (int)EnemyID.Striker_Bullrush, (int)EnemyID.Striker_Big_Bullrush };
+
+                    SetupRandomizedGroupsByIDs(__instance, enemyIDs, enemyIDsToIgnore);
                     break;
                 case (SpawnTweakerMode.ONLY_SHADOWS):
                     enemyIDs = new List<int> { (int)EnemyID.Shadow, (int)EnemyID.Scout_Shadow, (int)EnemyID.Striker_Big_Shadow };
-                    SetupRandomizedGroupsByIDs(__instance, enemyIDs);
+                    SetupRandomizedGroupsByIDs(__instance, enemyIDs, enemyIDsToIgnore);
                     break;
                 case (SpawnTweakerMode.RANDOM):
                     RandomlyRandomizeEnemies(__instance);
@@ -166,19 +170,34 @@ namespace GTFO_DIfficulty_Tweaker.Core
             __instance.m_groupPlacement.groupData.Difficulty = UnityEngine.Random.value > 0.3f ? eEnemyRoleDifficulty.Hard : eEnemyRoleDifficulty.Boss;
         }
 
-        private static void SetupRandomizedGroupsByIDs(LG_PopulateArea __instance, List<int> enemyIDS)
+        private static void SetupRandomizedGroupsByIDs(LG_PopulateArea __instance, List<int> enemyIDS, List<int> ignoreList = null)
         {
             List<pAvailableEnemyTypes> validTypes = GetValidGroups(enemyIDS);
+            List<pAvailableEnemyTypes> ignoredGroups = GetValidGroups(ignoreList);
+
+
             pAvailableEnemyTypes dataGroup = GetRandomEnemyGroup(validTypes);
 
             foreach (EnemyGroupCompositionData enemyGroupCompositionData in __instance.m_groupPlacement.groupData.Roles)
             {
+                foreach (pAvailableEnemyTypes type in ignoredGroups)
+                {
+                    if (__instance.m_groupPlacement.groupData.Difficulty == type.difficulty && enemyGroupCompositionData.Role == type.role)
+                    {
+                        LoggerWrapper.Log($"Ignoring enemyDataGroup: Diff:{ __instance.m_groupPlacement.groupData.Difficulty} Role:{__instance.m_groupPlacement.groupData.Type} Type:{dataGroup.role}", LogLevel.Debug);
+                        return;
+                    }
+                }
+
                 enemyGroupCompositionData.Role = dataGroup.role;
             }
+
             __instance.m_groupPlacement.groupData.Type = GetValidGroupTypeFromRole(dataGroup.role);
             __instance.m_groupPlacement.groupData.Difficulty = dataGroup.difficulty;
 
-            LoggerWrapper.Log($"Setting enemyDataGroup: Diff:{dataGroup.difficulty} Role:{__instance.m_groupPlacement.groupData.Type} Type:{dataGroup.role}", LogLevel.Debug);
+            LoggerWrapper.Log($"Setting enemyDataGroup: Diff:{__instance.m_groupPlacement.groupData.Difficulty} Role:{__instance.m_groupPlacement.groupData.Type} Type:{dataGroup.role}", LogLevel.Debug);
+
+
         }
 
         private static pAvailableEnemyTypes GetRandomEnemyGroup(List<pAvailableEnemyTypes> validGroups)
@@ -187,7 +206,7 @@ namespace GTFO_DIfficulty_Tweaker.Core
 
             foreach (pAvailableEnemyTypes type in validGroups)
             {
-                weightedPairs.Add(type, (float)type.difficulty);
+                weightedPairs.Add(type, (float)type.weight);
             }
 
             pAvailableEnemyTypes dataGroup = weightedPairs.RandomElementByWeight(e => e.Value).Key;
@@ -198,31 +217,89 @@ namespace GTFO_DIfficulty_Tweaker.Core
         {
             List<pAvailableEnemyTypes> valid = new List<pAvailableEnemyTypes>();
 
+            if (enemies == null || enemies.Count < 1)
+            {
+                return valid;
+            }
+
             foreach (pAvailableEnemyTypes type in EnemyGroupData.enemyTypes)
             {
-                if (enemies.Contains((int)type.enemyID))
+                // ToDo Check validity with EnemyGroupDataBlock
+                if (enemies.Contains((int)type.enemyID) && type.role != eEnemyRole.Tank)
                 {
                     valid.Add(type);
                 }
             }
 
             List<pAvailableEnemyTypes> trueValid = new List<pAvailableEnemyTypes>();
-            
-            foreach(pAvailableEnemyTypes validType in valid)
+
+            EnsureGroupsOnlyContainValidIDS(enemies, valid, trueValid);
+            CheckValidity(enemies, trueValid);
+
+            return trueValid;
+        }
+
+        private static void EnsureGroupsOnlyContainValidIDS(List<int> enemies, List<pAvailableEnemyTypes> valid, List<pAvailableEnemyTypes> trueValid)
+        {
+            foreach (pAvailableEnemyTypes validType in valid)
             {
+
+                HashSet<Tuple<eEnemyRole, eEnemyRoleDifficulty>> invalidGroups = new HashSet<Tuple<eEnemyRole, eEnemyRoleDifficulty>>();
+
                 foreach (pAvailableEnemyTypes type in EnemyGroupData.enemyTypes)
                 {
+
                     if (type.role == validType.role && type.difficulty == validType.difficulty)
                     {
-                        if(!enemies.Contains((int)type.enemyID))
+                        if (!enemies.Contains((int)type.enemyID))
                         {
-
+                            invalidGroups.Add(new Tuple<eEnemyRole, eEnemyRoleDifficulty>(type.role, type.difficulty));
                         }
                     }
                 }
+
+                bool isValid = true;
+                foreach (Tuple<eEnemyRole, eEnemyRoleDifficulty> invalidGroup in invalidGroups)
+                {
+                    if (validType.role == invalidGroup.Item1 && validType.difficulty == invalidGroup.Item2)
+                    {
+                        isValid = false;
+                        if (!isValid)
+                        {
+                            break;
+                        }
+                    }
+                }
+
+                if (isValid)
+                {
+                    trueValid.Add(validType);
+                }
             }
-            
-            return valid;
+        }
+
+        private static void CheckValidity(List<int> enemies, List<pAvailableEnemyTypes> trueValid)
+        {
+            if (trueValid.Count < 1)
+            {
+                LoggerWrapper.Log("Could not find any groups!");
+            }
+
+            foreach (int enemyID in enemies)
+            {
+                bool enemyIDHandled = false;
+                foreach (pAvailableEnemyTypes type in trueValid)
+                {
+                    if (type.enemyID == enemyID)
+                    {
+                        enemyIDHandled = true;
+                    }
+                }
+                if (!enemyIDHandled)
+                {
+                    LoggerWrapper.Log($"COULD NOT FIND SPAWN GROUP FOR ENEMY ID {enemyID} !");
+                }
+            }
         }
 
         private static eEnemyGroupType GetValidGroupTypeFromRole(eEnemyRole role)
@@ -236,6 +313,7 @@ namespace GTFO_DIfficulty_Tweaker.Core
             {
                 return eEnemyGroupType.PureSneak;
             }
+
             return eEnemyGroupType.Hibernate;
         }
 

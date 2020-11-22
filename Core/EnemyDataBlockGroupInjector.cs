@@ -20,10 +20,11 @@ namespace GTFO_DIfficulty_Tweaker.Core
                 Il2CppSystem.Collections.Generic.List<EnemyRoleData> customRoles = new Il2CppSystem.Collections.Generic.List<EnemyRoleData>();
 
                 customRoles.Add(CreateCustomData(eEnemyRoleDifficulty.MiniBoss, eEnemyRole.Lurker, 6, 35, 2));
-
+                customRoles.Add(CreateCustomData(eEnemyRoleDifficulty.MiniBoss, eEnemyRole.Melee, 10, 39, 1));
                 foreach (EnemyRoleData data in __instance.RoleDatas)
                 {
                     customRoles.Add(data);
+                    
                 }
                 __instance.RoleDatas = customRoles;
                 injected = true;

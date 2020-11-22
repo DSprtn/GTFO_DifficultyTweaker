@@ -9,6 +9,7 @@ using GTFO_DIfficulty_Tweaker.Util;
 using Harmony;
 using LevelGeneration;
 using MelonLoader;
+using Player;
 using SNetwork;
 using System;
 using System.Collections.Generic;
@@ -22,13 +23,30 @@ namespace GTFO_Difficulty_Tweaker
     [HarmonyPatch(typeof(EnemyPopulationDataBlock), "SetupEnemyDataLookup")]
     class InjectCustomPopData
     {
-        static bool injected = false;
         static void Prefix(EnemyPopulationDataBlock __instance)
         {
             EnemyDataBlockGroupInjector.InjectCustomEnemies(__instance);
         }
     }
-    
+
+    /*
+    [HarmonyPatch(typeof(PlayerAgent), nameof(PlayerAgent.Start))]
+    class InjectGroupDataBlockDebug
+    {
+        static void Postfix()
+        {
+            foreach(EnemyGroupDataBlock block in GameDataBlockBase<EnemyGroupDataBlock>.GetAllBlocks())
+            {
+                LoggerWrapper.Log($"EnemyGroupDatablockInfo: {block.Type} - Difficulty: {block.Difficulty}", LogLevel.Debug);
+                foreach (EnemyGroupCompositionData data in block.Roles)
+                {
+                    LoggerWrapper.Log(data.Role.ToString(), LogLevel.Debug);
+                }
+            }
+        }
+    }
+    */
+
     [HarmonyPatch(typeof(EnemyPopulationDataBlock), "SetupEnemyDataLookup")]
     class InjectDebugPossibleEnemies
     {
