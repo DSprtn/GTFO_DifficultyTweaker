@@ -50,7 +50,7 @@ namespace GTFO_DIfficulty_Tweaker.Core
                     RandomlyRandomizeEnemies(__instance);
                     break;
                 case SpawnTweakerMode.BALANCED_RANDOM:
-                    enemyIDs = new List<int> { (int)EnemyID.Shadow, (int)EnemyID.Scout_Shadow, (int)EnemyID.Striker_Big_Shadow, 
+                    enemyIDs = new List<int> { (int)EnemyID.Shadow, (int)EnemyID.Scout_Shadow, (int)EnemyID.Striker_Big_Shadow,
                     (int)EnemyID.Scout, (int)EnemyID.Striker_Big_Bullrush,
                     (int)EnemyID.Shooter_Hibernate,(int)EnemyID.Striker_Hibernate, (int)EnemyID.Striker_Big_Hibernate,(int)EnemyID.Shooter_Big,
                     (int)EnemyID.Striker_Bullrush, (int)EnemyID.Shooter_Big_RapidFire};
@@ -69,6 +69,9 @@ namespace GTFO_DIfficulty_Tweaker.Core
                 case (SpawnTweakerMode.RANDOM):
                     populationDataID = SetRandomPopulationID(populationDataID);
                     break;
+                case (SpawnTweakerMode.BALANCED_RANDOM):
+                    populationDataID = SetRandomPopulationID(populationDataID);
+                    break;
                 case (SpawnTweakerMode.ONLY_SHOOTERS):
                     populationDataID = (ushort)GD.SurvivalWavePopulation.Shooters_Only;
                     break;
@@ -83,74 +86,70 @@ namespace GTFO_DIfficulty_Tweaker.Core
 
         private static ushort SetRandomPopulationID(ushort populationDataID)
         {
-            if (SpawnTweakSettings.mode == SpawnTweakerMode.RANDOM)
+
+            int randomVal = UnityEngine.Random.Range(0, 5);
+
+            if (randomVal == 0)
             {
-                int randomVal = UnityEngine.Random.Range(0, 5);
-
-                if (randomVal == 0)
-                {
-                    populationDataID = (ushort)GD.SurvivalWavePopulation.Shooters_Only;
-                }
-
-                if (randomVal == 1)
-                {
-                    populationDataID = (ushort)GD.SurvivalWavePopulation.Baseline;
-                }
-
-                if (randomVal == 2)
-                {
-                    populationDataID = (ushort)GD.SurvivalWavePopulation.Baseline_big;
-                }
-
-                if (randomVal == 3)
-                {
-                    populationDataID = (ushort)GD.SurvivalWavePopulation.Shadows_only;
-                }
-
-                if (randomVal == 4)
-                {
-                    populationDataID = (ushort)GD.SurvivalWavePopulation.Bullrush_Only;
-                }
-
-                LoggerWrapper.Log("SETTING ALARM POP_ID " + populationDataID, LogLevel.Info);
+                populationDataID = (ushort)GD.SurvivalWavePopulation.Shooters_Only;
             }
+
+            if (randomVal == 1)
+            {
+                populationDataID = (ushort)GD.SurvivalWavePopulation.Baseline;
+            }
+
+            if (randomVal == 2)
+            {
+                populationDataID = (ushort)GD.SurvivalWavePopulation.Baseline_big;
+            }
+
+            if (randomVal == 3)
+            {
+                populationDataID = (ushort)GD.SurvivalWavePopulation.Shadows_only;
+            }
+
+            if (randomVal == 4)
+            {
+                populationDataID = (ushort)GD.SurvivalWavePopulation.Bullrush_Only;
+            }
+
+            LoggerWrapper.Log("SETTING ALARM POP_ID " + populationDataID, LogLevel.Info);
+
 
             return populationDataID;
         }
 
         private static void RandomlyRandomizeEnemies(LG_PopulateArea __instance)
         {
-            if (UnityEngine.Random.value > 0.4f)
+            eEnemyRole role = GetRandomRole();
+
+            foreach (EnemyGroupCompositionData enemyGroupCompositionData in __instance.m_groupPlacement.groupData.Roles)
             {
-                eEnemyRole role = GetRandomRole();
+                enemyGroupCompositionData.Role = role;
 
-                foreach (EnemyGroupCompositionData enemyGroupCompositionData in __instance.m_groupPlacement.groupData.Roles)
-                {
-                    enemyGroupCompositionData.Role = role;
+            }
+            __instance.m_groupPlacement.groupData.Type = GetValidGroupTypeFromRole(role);
+            __instance.m_groupPlacement.groupData.Difficulty = GetRandomDifficulty();
 
-                }
-                __instance.m_groupPlacement.groupData.Type = GetValidGroupTypeFromRole(role);
-                __instance.m_groupPlacement.groupData.Difficulty = GetRandomDifficulty();
+            if (role.Equals(eEnemyRole.Scout))
+            {
+                __instance.m_groupPlacement.groupData.Difficulty = UnityEngine.Random.value > 0.3f ? eEnemyRoleDifficulty.Boss : eEnemyRoleDifficulty.Hard;
+            }
 
-                if (role.Equals(eEnemyRole.Scout))
-                {
-                    __instance.m_groupPlacement.groupData.Difficulty = UnityEngine.Random.value > 0.3f ? eEnemyRoleDifficulty.Boss : eEnemyRoleDifficulty.Hard;
-                }
+            if (role.Equals(eEnemyRole.MiniBoss))
+            {
+                __instance.m_groupPlacement.groupData.Difficulty = UnityEngine.Random.value > 0.9 ? eEnemyRoleDifficulty.MiniBoss : eEnemyRoleDifficulty.MegaBoss;
+            }
 
-                if (role.Equals(eEnemyRole.MiniBoss))
-                {
-                    __instance.m_groupPlacement.groupData.Difficulty = UnityEngine.Random.value > 0.9 ? eEnemyRoleDifficulty.MiniBoss : eEnemyRoleDifficulty.MegaBoss;
-                }
+            if (role.Equals(eEnemyRole.Melee) && UnityEngine.Random.value > 0.5f)
+            {
+                __instance.m_groupPlacement.groupData.Difficulty = eEnemyRoleDifficulty.Biss;
+            }
 
-                if (role.Equals(eEnemyRole.Melee) && UnityEngine.Random.value > 0.8f)
-                {
-                    __instance.m_groupPlacement.groupData.Difficulty = eEnemyRoleDifficulty.Biss;
-                }
-
-                if (role.Equals(eEnemyRole.Boss))
-                {
-                    __instance.m_groupPlacement.groupData.Difficulty = eEnemyRoleDifficulty.Boss;
-                }
+            if (role.Equals(eEnemyRole.Boss))
+            {
+                __instance.m_groupPlacement.groupData.Difficulty = UnityEngine.Random.value > 0.3f ? eEnemyRoleDifficulty.Boss : eEnemyRoleDifficulty.MegaBoss;
             }
         }
 
@@ -215,7 +214,7 @@ namespace GTFO_DIfficulty_Tweaker.Core
 
             foreach (pAvailableEnemyTypes type in validGroups)
             {
-                if(!weightedPairs.ContainsKey(type))
+                if (!weightedPairs.ContainsKey(type))
                 {
                     weightedPairs.Add(type, (float)type.weight);
                 }
