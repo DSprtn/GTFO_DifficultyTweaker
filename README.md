@@ -35,5 +35,7 @@
     Works only if the host of the game has it.
 	
 ## Known issues: 
-    You need to restart the game if you want to play with the default enemy population.
+    You need to restart the game if you want to play with the default enemy population after
+    using one of the modes.
+    
     Random crashes may occur, il2cpp seems to be quite unstable.
