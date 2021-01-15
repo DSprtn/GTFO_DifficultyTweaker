@@ -1,5 +1,6 @@
 ﻿using GameData;
 using GTFO_Difficulty_Tweaker.Data;
+using GTFO_DIfficulty_Tweaker.Config;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,21 +11,17 @@ namespace GTFO_Difficulty_Tweaker
 {
     public static class SpawnTweakSettings
     {
-        public static SpawnTweakerMode mode = SpawnTweakerMode.NORMAL;
-        public static float spawnPopMult = 1f;
-        public static float resourceMult = 1f;
-        public static eEnemyRole enemyRole = eEnemyRole.Scout;
-        public static float scoutChance = 0.1f;
-
-
-        public static void SetScoutChance(float newChance)
+        static float spawnMult = 1;
+        public static float spawnPopMult
         {
-            scoutChance = newChance;
-        }
-
-        public static void SetResourceMult(float resMult)
-        {
-            resourceMult = resMult;
+            get
+            {
+                return spawnMult * (SpawnModeConfiguration.currentMode == null ? 1 : SpawnModeConfiguration.currentMode.baseEnemyPopulationMultiplier);
+            }
+            set 
+            {
+                spawnMult = value;
+            }
         }
 
         public static void SetPopulationMult(float mult)

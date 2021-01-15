@@ -1,7 +1,6 @@
 ﻿using GTFO_Difficulty_Tweaker.Console;
 using GTFO_DIfficulty_Tweaker.Console;
 using GTFO_DIfficulty_Tweaker.Util;
-using MelonLoader;
 using static GTFO_Difficulty_Tweaker.SpawnTweakSettings;
 
 namespace GTFO_Difficulty_Tweaker.Console
@@ -18,7 +17,10 @@ namespace GTFO_Difficulty_Tweaker.Console
                 base.Execute(payLoad);
                 foreach (Command c in CommandParser.commands)
                 {
-                    LoggerWrapper.Log("\n" + c.commandName + " --- " + c.GetDescriptionString());
+                    if(typeof(HelpCommand).Equals(c.GetType())) {
+                    continue;
+                    }
+                    LoggerWrapper.Log(c.commandName + " --- " + c.GetDescriptionString(), BepInEx.Logging.LogLevel.Message, true);
                 }
             }
         }

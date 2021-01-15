@@ -1,6 +1,6 @@
-﻿using GameData;
+﻿using BepInEx.Logging;
+using GameData;
 using GTFO_DIfficulty_Tweaker.Util;
-using MelonLoader;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -28,7 +28,6 @@ namespace GTFO_DIfficulty_Tweaker.Core
                 }
                 __instance.RoleDatas = customRoles;
                 injected = true;
-                LoggerWrapper.Log("Adding invisible giants...", LogLevel.UserInfo, ConsoleColor.Red);
             }
         }
 
@@ -42,5 +41,6 @@ namespace GTFO_DIfficulty_Tweaker.Core
             data.Weight = Mathf.Min(2f, Mathf.Max(0.2f, UnityEngine.Random.value * weightMult));
             return data;
         }
+
     }
 }

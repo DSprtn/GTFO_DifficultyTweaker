@@ -1,5 +1,8 @@
-﻿using GTFO_DIfficulty_Tweaker.Util;
-using MelonLoader;
+﻿using BepInEx.Logging;
+using GameData;
+using GTFO_DIfficulty_Tweaker.Config;
+using GTFO_DIfficulty_Tweaker.Data;
+using GTFO_DIfficulty_Tweaker.Util;
 using System;
 using System.Collections.Generic;
 
@@ -7,48 +10,63 @@ namespace GTFO_Difficulty_Tweaker.Console
 {
     public class SpawnModeCommand : Command
     {
-        Dictionary<SpawnTweakerMode, string> spawnModes = new Dictionary<SpawnTweakerMode, string>();
 
         public SpawnModeCommand(string commandName, string commandDesc) : base(commandName, commandDesc)
         {
-            foreach (SpawnTweakerMode m in Enum.GetValues(typeof(SpawnTweakerMode)))
-            {
-                spawnModes.Add(m, Enum.GetName(typeof(SpawnTweakerMode), m));
-            }
+            
         }
 
         public override void Execute(string payLoad)
         {
-            SpawnTweakerMode mode = SpawnTweakSettings.mode;
+            SpawnMode mode = null;
 
-            foreach (KeyValuePair<SpawnTweakerMode, string> item in spawnModes)
+            foreach (KeyValuePair<string, SpawnMode> item in SpawnModeConfiguration.spawnModes)
             {
-                if (payLoad.StartsWith(item.Value))
+                if(String.Equals(payLoad, item.Key, StringComparison.OrdinalIgnoreCase))
                 {
-                    mode = item.Key;
+                    mode = item.Value;
                 }
+                continue;
             }
 
-            if (SpawnTweakSettings.mode != mode)
+            if (SpawnModeConfiguration.currentMode != mode)
             {
-                LoggerWrapper.Log("Switching spawning mode to " + mode, LogLevel.UserInfo);
-                SpawnTweakSettings.mode = mode;
+
+                if (mode != null)
+                {
+                    LoggerWrapper.Log($"Switched to \"{ mode.spawnModeName }\" - \"{mode.description}\" ", LogLevel.Message);
+                } else
+                {
+                    LoggerWrapper.Log("Invalid mode", LogLevel.Message);
+                }
+                //ToDo fix switching back to normal spawns
+                //EnemyPopulationDataBlock.Setup();
+                //EnemyPopulationDataBlock.PostSetup();
+
+                SpawnModeConfiguration.currentMode = mode;
             }
         }
 
         public static string GetAllAvailableModes()
         {
-            string result = "\n";
-            foreach (SpawnTweakerMode m in Enum.GetValues(typeof(SpawnTweakerMode)))
+            string result = "";
+            int curr = 0;
+            foreach (SpawnMode m in SpawnModeConfiguration.spawnModes.Values)
             {
-                result += Enum.GetName(typeof(SpawnTweakerMode), m) + "\n";
+                curr++;
+                result += $"{m.spawnModeName};";
+                if(curr == 3)
+                {
+                    result += "\n";
+                    curr = 0;
+                }
             }
             return result;
         }
 
         public override string GetDescriptionString()
         {
-            return base.GetDescriptionString() + $" \nAvailable modes:\n{  SpawnModeCommand.GetAllAvailableModes()}";
+            return base.GetDescriptionString() + $" Available modes:\n{SpawnModeCommand.GetAllAvailableModes()}";
         }
     }
 }

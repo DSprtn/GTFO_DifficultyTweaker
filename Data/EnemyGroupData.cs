@@ -1,7 +1,5 @@
 ﻿using GameData;
-using GTFO_Difficulty_Tweaker.Data;
 using GTFO_DIfficulty_Tweaker.Util;
-using MelonLoader;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,29 +7,61 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace GTFO_DIfficulty_Tweaker.Data
-{
+{   
+    /// <summary>
+    /// Not working as of yet, might be useful in the future
+    /// </summary>
     public static class EnemyGroupData
     {
+        public static Dictionary<uint, pGroupDataBlock> originalData;
 
-        public static List<pAvailableEnemyTypes> enemyTypes;
-
-        public static void SetupData(EnemyPopulationDataBlock __instance)
+        public static void TryAddDataBlock(EnemyGroupDataBlock block)
         {
-            if (enemyTypes == null)
+            if(originalData == null)
             {
-                enemyTypes = new List<pAvailableEnemyTypes>();
+                originalData = new Dictionary<uint, pGroupDataBlock>();
             }
-
-            foreach (Il2CppSystem.Collections.Generic.List<EnemyRoleData> data in __instance.m_enemyDataPerRoleAndDiff.Values)
+            if(originalData.ContainsKey(block.persistentID))
             {
-                foreach (EnemyRoleData data1 in data)
-                {
-                    pAvailableEnemyTypes enemyData = new pAvailableEnemyTypes(
-                        data1.Enemy, data1.Cost, data1.Difficulty, data1.Role, data1.Weight);
-                    enemyTypes.Add(enemyData);
+                return;
+            }
+            originalData.Add(block.persistentID, new pGroupDataBlock(block));
+        }
 
-                    LoggerWrapper.Log($"Enemy: {data1.Enemy} Cost: {data1.Cost} Difficulty: {data1.Difficulty} Role: {data1.Role}", LogLevel.Debug);
+        public static void TryResetBlockData(EnemyGroupDataBlock block) 
+        { 
+            if(originalData == null)
+            {
+                return;
+            }
+            if(originalData.ContainsKey(block.persistentID))
+            {
+                pGroupDataBlock data = originalData[block.persistentID];
+                block.Difficulty = data.difficulty;
+                block.MaxScore = data.maxScore;
+                block.RelativeWeight = data.RelativeWeight;
+                block.SpawnPlacementType = data.placement;
+
+                for (int i = 0; i < block.Roles.Count; i++)
+                {
+                    block.Roles[i].Role = data.roleCache[i].Item1;
+                    block.Roles[i].Distribution = data.roleCache[i].Item2;
                 }
+            } else
+            {
+                LoggerWrapper.Log($"COULD NOT RECOVER BLOCK {block.persistentID}", BepInEx.Logging.LogLevel.Fatal);
+            }
+        }
+
+        internal static void TryResetAll()
+        {
+            if (originalData == null)
+            {
+                return;
+            }
+            foreach (uint id in originalData.Keys)
+            {
+                TryResetBlockData(EnemyGroupDataBlock.GetBlock(id));
             }
         }
     }

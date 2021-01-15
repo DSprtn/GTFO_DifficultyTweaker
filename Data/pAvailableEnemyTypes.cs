@@ -18,5 +18,10 @@ namespace GTFO_Difficulty_Tweaker.Data
             this.role = role;
             this.weight = weight;
         }
+
+        public override string ToString()
+        {
+            return $"PopData: EnemyID:{enemyID} Difficulty: {difficulty} Role: {role}";
+        }
     }
 }

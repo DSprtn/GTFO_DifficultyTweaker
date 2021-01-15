@@ -1,13 +1,10 @@
-﻿using MelonLoader;
-using System.Reflection;
+﻿using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 // General Information about an assembly is controlled through the following
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: MelonModInfo(typeof(GTFO_Difficulty_Tweaker.Main), "GTFO_Difficulty_Tweaker", "1.0", "Spartan")]
-[assembly: MelonModGame("10 Chambers Collective", "GTFO")]
 [assembly: AssemblyTitle("GTFO_Difficulty_Tweaker")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]

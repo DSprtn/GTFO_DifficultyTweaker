@@ -34,24 +34,39 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="GameData-ASM">
-      <HintPath>..\..\GTFO_VR\_References\MelonLoader\Managed\GameData-ASM.dll</HintPath>
+    <Reference Include="0Harmony">
+      <HintPath>..\..\..\..\..\SteamLibrary\steamapps\common\GTFO\BepInEx\core\0Harmony.dll</HintPath>
     </Reference>
-    <Reference Include="GlobalFramework-ASM, Version=3.7.1.6, Culture=neutral, PublicKeyToken=null" />
+    <Reference Include="BepInEx.Core">
+      <HintPath>..\..\..\..\..\SteamLibrary\steamapps\common\GTFO\BepInEx\core\BepInEx.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="BepInEx.IL2CPP">
+      <HintPath>..\..\..\..\..\SteamLibrary\steamapps\common\GTFO\BepInEx\core\BepInEx.IL2CPP.dll</HintPath>
+    </Reference>
+    <Reference Include="GameData-ASM">
+      <HintPath>..\..\..\..\..\SteamLibrary\steamapps\common\GTFO\BepInEx\unhollowed\GameData-ASM.dll</HintPath>
+    </Reference>
+    <Reference Include="GlobalFramework-ASM">
+      <HintPath>..\..\..\..\..\SteamLibrary\steamapps\common\GTFO\BepInEx\unhollowed\GlobalFramework-ASM.dll</HintPath>
+    </Reference>
     <Reference Include="Il2Cppmscorlib">
       <HintPath>_References\Il2Cppmscorlib.dll</HintPath>
-    </Reference>
-    <Reference Include="MelonLoader.ModHandler">
-      <HintPath>_References\MelonLoader\MelonLoader.ModHandler.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="Modules-ASM">
-      <HintPath>_References\MelonLoader\Managed\Modules-ASM.dll</HintPath>
+      <HintPath>..\..\..\..\..\SteamLibrary\steamapps\common\GTFO\BepInEx\unhollowed\Modules-ASM.dll</HintPath>
+    </Reference>
+    <Reference Include="Newtonsoft.Json, Version=9.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\..\SteamLibrary\steamapps\common\GTFO\BepInEx\plugins\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="SNet_ASM">
       <HintPath>_References\MelonLoader\Managed\SNet_ASM.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Runtime.Remoting" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -60,19 +75,25 @@
     <Reference Include="System.Xml" />
     <Reference Include="UnhollowerBaseLib">
       <HintPath>_References\UnhollowerBaseLib.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="UnhollowerRuntimeLib">
       <HintPath>_References\UnhollowerRuntimeLib.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="UnityEngine.CoreModule">
       <HintPath>_References\UnityEngine.CoreModule.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="Utils-ASM, Version=3.7.1.6, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\SteamLibrary\steamapps\common\GTFO\MelonLoader\Managed\Utils-ASM.dll</HintPath>
+      <HintPath>..\..\..\..\..\SteamLibrary\steamapps\common\GTFO\BepInEx\unhollowed\Utils-ASM.dll</HintPath>
+      <Private>False</Private>
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Config\SpawnMode.cs" />
+    <Compile Include="Config\SpawnModeConfiguration.cs" />
     <Compile Include="Console\Command.cs" />
     <Compile Include="Console\CommandParser.cs" />
     <Compile Include="Core\EnemyDataBlockGroupInjector.cs" />
@@ -80,18 +101,25 @@
     <Compile Include="Core\HackyHooks.cs" />
     <Compile Include="Console\HelpCommand.cs" />
     <Compile Include="Data\EnemyGroupData.cs" />
+    <Compile Include="Data\EnemyPopData.cs" />
     <Compile Include="Data\EnemyID.cs" />
+    <Compile Include="Data\pGroupDataBlock.cs" />
+    <Compile Include="Data\SurvivalSpawnWavePopulation.cs" />
+    <Compile Include="Data\SurvivalSpawnWaveSettings.cs" />
     <Compile Include="Inject\Inject.cs" />
-    <Compile Include="Core\Main.cs" />
-    <Compile Include="Core\SpawnTweakerMode.cs" />
+    <Compile Include="Main.cs" />
     <Compile Include="Data\pAvailableEnemyTypes.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Console\PropertySetCommand.cs" />
+    <Compile Include="Util\ExtensionMethods.cs" />
     <Compile Include="Util\LoggerWrapper.cs" />
-    <Compile Include="Util\RandomTools.cs" />
+    <Compile Include="Util\PathUtil.cs" />
+    <Compile Include="Util\RandomElementByWeight.cs" />
     <Compile Include="Console\SpawnModeCommand.cs" />
     <Compile Include="Core\SpawnTweakSettings.cs" />
   </ItemGroup>
-  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>xcopy "$(TargetPath)" "S:/_VS_BUILDS" /E /Y</PostBuildEvent>
+  </PropertyGroup>
 </Project>

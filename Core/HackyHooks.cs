@@ -1,20 +1,26 @@
 ﻿using Agents;
+using BepInEx.IL2CPP.Hook;
+using BepInEx.Logging;
 using Enemies;
 using GTFO_Difficulty_Tweaker;
+using GTFO_DIfficulty_Tweaker.Config;
 using GTFO_DIfficulty_Tweaker.Console;
-using MelonLoader;
+using GTFO_DIfficulty_Tweaker.Util;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using UnhollowerBaseLib;
 using UnityEngine;
 
 namespace GTFO_DIfficulty_Tweaker.Core
 {
+    
     public static class HackyHooks
     {
         public static void HookIntoChatMessages()
@@ -25,9 +31,9 @@ namespace GTFO_DIfficulty_Tweaker.Core
                     .GetIl2CppMethodInfoPointerFieldForGeneratedMethod(typeof(PlayerChatManager).GetMethod(nameof(PlayerChatManager.DoSendChatMessage)))
                     .GetValue(null);
 
-                Imports.Hook((IntPtr)(&originalMethodPointer), typeof(HackyHooks).GetMethod(nameof(HackyHooks.ChatMsgPatch), BindingFlags.Static | BindingFlags.NonPublic)!.MethodHandle.GetFunctionPointer());
+                FastNativeDetour.CreateAndApply(originalMethodPointer, HackyHooks.ChatMsgPatch, out ourChatDelegate, CallingConvention.Cdecl);
 
-                ourChatDelegate = Marshal.GetDelegateForFunctionPointer<ChatDelegate>(originalMethodPointer);
+
             }
         }
 
@@ -39,9 +45,7 @@ namespace GTFO_DIfficulty_Tweaker.Core
                     .GetIl2CppMethodInfoPointerFieldForGeneratedMethod(typeof(EnemyGroup).GetMethod(nameof(EnemyGroup.GetSpawnData)))
                     .GetValue(null);
 
-                Imports.Hook((IntPtr)(&originalMethodPointer), typeof(HackyHooks).GetMethod(nameof(HackyHooks.GetEnemySpawnDataPatch), BindingFlags.Static | BindingFlags.NonPublic)!.MethodHandle.GetFunctionPointer());
-
-                ourGetEnemySpawnData = Marshal.GetDelegateForFunctionPointer<EnemySpawnDataDelegate>(originalMethodPointer);
+                FastNativeDetour.CreateAndApply(originalMethodPointer, HackyHooks.GetEnemySpawnDataPatch, out ourGetEnemySpawnData, CallingConvention.Cdecl);
             }
         }
 
@@ -56,11 +60,11 @@ namespace GTFO_DIfficulty_Tweaker.Core
     float populationScore, IntPtr targetReplicator, IntPtr survivalWave,
     uint debugEnemyID, AgentMode debugEnemyMode)
         {
-            return ourGetEnemySpawnData(thisPtr, position, courseNode, groupType, spawnType, persistentGameDataID, populationScore * SpawnTweakSettings.spawnPopMult, targetReplicator, survivalWave, debugEnemyID, debugEnemyMode);
+            var result = ourGetEnemySpawnData(thisPtr, position, courseNode, groupType, spawnType, persistentGameDataID, populationScore * SpawnTweakSettings.spawnPopMult, targetReplicator, survivalWave, debugEnemyID, debugEnemyMode);
+            return result;
         }
 
         private static EnemySpawnDataDelegate ourGetEnemySpawnData;
-
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         private unsafe delegate void ChatDelegate(IntPtr thisPtr, MarshChatMsg msg);
@@ -68,8 +72,11 @@ namespace GTFO_DIfficulty_Tweaker.Core
         private unsafe static void ChatMsgPatch(IntPtr thisPtr, MarshChatMsg msg)
         {
             string chatStr = IL2CPP.Il2CppStringToManaged(msg.msg.m_data);
-            CommandParser.HandleMessage(chatStr);
-            ourChatDelegate(thisPtr, msg);
+            
+            if(!CommandParser.HandleMessage(chatStr))
+            {
+                ourChatDelegate(thisPtr, msg);
+            }
         }
 
         private static ChatDelegate ourChatDelegate;
@@ -109,5 +116,7 @@ namespace GTFO_DIfficulty_Tweaker.Core
 
         }
     }
+    
+    
 }
 

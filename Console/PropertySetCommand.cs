@@ -1,6 +1,5 @@
 ﻿using GTFO_Difficulty_Tweaker.Console;
 using GTFO_DIfficulty_Tweaker.Util;
-using MelonLoader;
 using System;
 using UnityEngine;
 
@@ -26,11 +25,11 @@ namespace GTFO_Difficulty_Tweaker.Console
             {
                 value = Mathf.Clamp(value, minValue, maxValue);
                 targetMethod.Invoke(value);
-                LoggerWrapper.Log($"Setting {commandDesc} to {value}");
+                LoggerWrapper.Log($"Setting {commandDesc} to {value}", BepInEx.Logging.LogLevel.Message);
             }
             else
             {
-                LoggerWrapper.Log("Invalid value");
+                LoggerWrapper.Log("Invalid value", BepInEx.Logging.LogLevel.Message);
             }
         }
 

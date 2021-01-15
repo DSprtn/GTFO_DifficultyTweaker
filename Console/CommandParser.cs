@@ -18,12 +18,11 @@ namespace GTFO_DIfficulty_Tweaker.Console
 
             commands.Add(new HelpCommand("HELP", "Display all available commands"));
             commands.Add(new PropertySetCommand("ENEMY_MULT", "Enemy population multiplier", SpawnTweakSettings.SetPopulationMult, 0.1f, 10f));
-            commands.Add(new PropertySetCommand("SCOUT_MULT", "Scout ratio in extra scout mode", SpawnTweakSettings.SetScoutChance, 0.01f, 0.95f));
             commands.Add(new SpawnModeCommand("ENEMY_MODE", $"Change the spawning mode of enemies."));
         }
 
 
-        public static void HandleMessage(string msg)
+        public static bool HandleMessage(string msg)
         {
             foreach (Command c in commands)
             {
@@ -32,8 +31,10 @@ namespace GTFO_DIfficulty_Tweaker.Console
                     string args = msg.Replace(c.commandName, "");
                     args = args.Trim();
                     c.Execute(args);
+                    return true;
                 }
             }
+            return false;
         }
 
     }

@@ -12,7 +12,7 @@ namespace GTFO_DIfficulty_Tweaker
         {
             float totalWeight = sequence.Sum(weightSelector);
             // The weight we are after...
-            float itemWeightIndex = (float) UnityEngine.Random.value * totalWeight;
+            float itemWeightIndex = UnityEngine.Random.value * totalWeight;
             float currentWeightIndex = 0;
 
             foreach (var item in from weightedItem in sequence select new { Value = weightedItem, Weight = weightSelector(weightedItem) })
@@ -26,5 +26,9 @@ namespace GTFO_DIfficulty_Tweaker
             }
             return default(T);
         }
+
+
     }
+
+    
 }

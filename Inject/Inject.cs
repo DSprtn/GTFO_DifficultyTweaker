@@ -1,26 +1,24 @@
 ﻿using AIGraph;
+using BepInEx.Logging;
 using Enemies;
 using GameData;
-using GTFO_Difficulty_Tweaker.Data;
-using GTFO_DIfficulty_Tweaker;
+using GTFO_DIfficulty_Tweaker.Console;
 using GTFO_DIfficulty_Tweaker.Core;
 using GTFO_DIfficulty_Tweaker.Data;
 using GTFO_DIfficulty_Tweaker.Util;
-using Harmony;
+using HarmonyLib;
+using Il2CppSystem.Collections.Generic;
 using LevelGeneration;
-using MelonLoader;
 using Player;
-using SNetwork;
 using System;
-using System.Collections.Generic;
 using UnhollowerBaseLib;
 using UnityEngine;
-using static GTFO_Difficulty_Tweaker.SpawnTweakSettings;
+
 
 namespace GTFO_Difficulty_Tweaker
 {
-
-    [HarmonyPatch(typeof(EnemyPopulationDataBlock), "SetupEnemyDataLookup")]
+    
+    [HarmonyPatch(typeof(EnemyPopulationDataBlock), nameof(EnemyPopulationDataBlock.SetupEnemyDataLookup))]
     class InjectCustomPopData
     {
         static void Prefix(EnemyPopulationDataBlock __instance)
@@ -29,40 +27,39 @@ namespace GTFO_Difficulty_Tweaker
         }
     }
 
-    /*
-    [HarmonyPatch(typeof(PlayerAgent), nameof(PlayerAgent.Start))]
-    class InjectGroupDataBlockDebug
+    [HarmonyPatch(typeof(EGS_PatrolMove), nameof(EGS_PatrolMove.Update))]
+    class InjectRemoveAnnoyingStuckDebug
     {
-        static void Postfix()
+        static void Prefix(EGS_PatrolMove __instance)
         {
-            foreach(EnemyGroupDataBlock block in GameDataBlockBase<EnemyGroupDataBlock>.GetAllBlocks())
-            {
-                LoggerWrapper.Log($"EnemyGroupDatablockInfo: {block.Type} - Difficulty: {block.Difficulty}", LogLevel.Debug);
-                foreach (EnemyGroupCompositionData data in block.Roles)
-                {
-                    LoggerWrapper.Log(data.Role.ToString(), LogLevel.Debug);
-                }
-            }
-        }
-    }
-    */
-
-    [HarmonyPatch(typeof(EnemyPopulationDataBlock), "SetupEnemyDataLookup")]
-    class InjectDebugPossibleEnemies
-    {
-        static void Postfix(EnemyPopulationDataBlock __instance)
-        {
-            EnemyGroupData.SetupData(__instance);
+            __instance.stuckTimer = Clock.Time;
         }
     }
 
+    [HarmonyPatch(typeof(PUI_GameEventLog), nameof(PUI_GameEventLog.Setup))]
+    class InjectChatCommands
+    {
+        static void Prefix(PUI_GameEventLog __instance)
+        {
+            LoggerWrapper.AddGameLogReference(__instance);
+        }
+    }
 
-    [HarmonyPatch(typeof(EnemyPrefabManager), "BuildEnemyPrefab")]
+    [HarmonyPatch(typeof(LG_PopulateArea), nameof(LG_PopulateArea.Build))]
+    class InjectPopulationTweak
+    {
+        static void Prefix(LG_PopulateArea __instance)
+        {
+            EnemyPopulationTypeTweaker.HandleEnemyPopChanges(__instance);
+        }
+    }
+
+    [HarmonyPatch(typeof(EnemyPrefabManager), nameof(EnemyPrefabManager.BuildEnemyPrefab))]
     class InjectEnemyDebug
     {
         static void Prefix(EnemyDataBlock data)
         {
-            LoggerWrapper.Log("ENEMY_INF - " + data.name + " ID " + data.persistentID, LogLevel.Info);
+            LoggerWrapper.Log("ENEMY_INF - " + data.name + " ID " + data.persistentID, LogLevel.Debug);
         }
     }
 
@@ -81,17 +78,8 @@ namespace GTFO_Difficulty_Tweaker
     {
         static void Prefix(ref ushort populationDataID, ref ushort settingsID)
         {
-            populationDataID = EnemyPopulationTypeTweaker.GetEnemyWavePopulationTweak(populationDataID);
-
+            EnemyPopulationTypeTweaker.SetEnemyWavePopulationTweak(ref populationDataID, ref settingsID);
         }
     }
-
-    [HarmonyPatch(typeof(LG_PopulateArea), "Build")]
-    class InjectSettingsType
-    {
-        static void Prefix(LG_PopulateArea __instance)
-        {
-            EnemyPopulationTypeTweaker.HandleEnemyPopChanges(__instance);
-        }
-    }
+    
 }
