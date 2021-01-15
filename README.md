@@ -10,7 +10,9 @@
 	
 	3. Download the latest version of the plugin from the releases tab.
 	
-	4. Launch the game again, done!
+	4. Place it into GTFO/Bepinex/Plugins/
+	
+	5. Launch the game again, done!
 	
 ## Usage notes:
 
